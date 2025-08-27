@@ -58,37 +58,33 @@ st.markdown("Enter your current tariff details and monthly consumption to see ho
 st.markdown("---")
 
 # --- User Inputs on Main Page ---
-st.header("Your Details")
-st.markdown("👇 Enter your details below to see the comparison.")
+st.header("Your Details & Custom Tariffs")
+st.markdown("👇 Enter your consumption and tariff details below.")
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 
 with col1:
     # User consumption inputs
-    st.subheader("Monthly Consumption (kWh)")
+    st.subheader("Monthly Consumption")
     day_consumption = st.number_input("Day Units (kWh)", min_value=0, value=392, step=10)
     night_consumption = st.number_input("Night Units (kWh)", min_value=0, value=49, step=10)
 
 with col2:
     # User's current tariff inputs
     st.subheader("Your Current Tariff")
-    current_day_rate = st.number_input("Day Rate (p/kWh)", min_value=0.0, value=22.21, step=0.1, format="%.2f")
-    current_night_rate = st.number_input("Night Rate (p/kWh)", min_value=0.0, value=15.80, step=0.1, format="%.2f")
-    current_standing_charge = st.number_input("Standing Charge (p/day)", min_value=0.0, value=57.74, step=0.1, format="%.2f")
+    current_day_rate = st.number_input("Day Rate (p)", min_value=0.0, value=22.21, step=0.1, format="%.2f")
+    current_night_rate = st.number_input("Night Rate (p)", min_value=0.0, value=15.80, step=0.1, format="%.2f")
+    current_standing_charge = st.number_input("Standing (p/day)", min_value=0.0, value=57.74, step=0.1, format="%.2f")
 
-# --- Section to Add New Tariffs ---
-with st.expander("➕ Add a Custom Tariff for Comparison"):
-    form_col1, form_col2, form_col3, form_col4 = st.columns([2,1,1,1])
-    with form_col1:
-        new_supplier = st.text_input("Supplier Name")
-    with form_col2:
-        new_day_rate = st.number_input("Day Rate (p/kWh)", min_value=0.0, step=0.1, format="%.2f", key="new_day")
-    with form_col3:
-        new_night_rate = st.number_input("Night Rate (p/kWh)", min_value=0.0, step=0.1, format="%.2f", key="new_night")
-    with form_col4:
-        new_standing_charge = st.number_input("Standing Charge (p/day)", min_value=0.0, step=0.1, format="%.2f", key="new_standing")
+with col3:
+    # Section to Add New Tariffs
+    st.subheader("Add Custom Tariff")
+    new_supplier = st.text_input("Supplier Name")
+    new_day_rate = st.number_input("Day Rate (p)", min_value=0.0, step=0.1, format="%.2f", key="new_day")
+    new_night_rate = st.number_input("Night Rate (p)", min_value=0.0, step=0.1, format="%.2f", key="new_night")
+    new_standing_charge = st.number_input("Standing (p/day)", min_value=0.0, step=0.1, format="%.2f", key="new_standing")
     
-    if st.button("Add Tariff to Comparison"):
+    if st.button("Add Tariff"):
         if new_supplier: # Basic validation to ensure a name is entered
             st.session_state.custom_tariffs.append({
                 'Supplier': new_supplier,
@@ -96,7 +92,7 @@ with st.expander("➕ Add a Custom Tariff for Comparison"):
                 'Night Rate (p/kWh)': new_night_rate,
                 'Standing Charge (p/day)': new_standing_charge
             })
-            st.success(f"Added '{new_supplier}' to the comparison.")
+            st.success(f"Added '{new_supplier}'")
         else:
             st.warning("Please enter a supplier name.")
 
@@ -142,48 +138,12 @@ comparison_df['Estimated Yearly Cost (£)'] = comparison_df.apply(
     axis=1
 )
 
-# Create a DataFrame for the user's current tariff to add to the chart
-current_tariff_data = pd.DataFrame({
-    'Supplier': ['Your Current Tariff'],
-    'Estimated Yearly Cost (£)': [current_tariff_cost]
-})
-
-# Combine the user's tariff with the comparison tariffs for the chart
-all_tariffs_for_chart = pd.concat([current_tariff_data, comparison_df[['Supplier', 'Estimated Yearly Cost (£)']]], ignore_index=True)
-
-
 # --- Display Results ---
 st.markdown("---")
 st.header("Results")
 
 # Display the calculated cost for the user's current tariff
 st.metric(label="Your Estimated Yearly Cost", value=f"£{current_tariff_cost:,.2f}")
-
-
-# --- Comparison Chart ---
-st.subheader("Yearly Cost Comparison")
-
-# Ensure the dataframe is not empty before trying to render a chart
-if not all_tariffs_for_chart.empty:
-    chart = alt.Chart(all_tariffs_for_chart).mark_bar().encode(
-        x=alt.X('Supplier:N', sort='-y', title='Supplier'),
-        y=alt.Y('Estimated Yearly Cost (£):Q', title='Estimated Yearly Cost (£)'),
-        color=alt.condition(
-            alt.datum.Supplier == 'Your Current Tariff',
-            alt.value('orange'),  # Highlight color for the user's tariff
-            alt.value('steelblue') # Default color for other tariffs
-        ),
-        tooltip=[
-            alt.Tooltip('Supplier', title='Supplier'),
-            alt.Tooltip('Estimated Yearly Cost (£)', title='Yearly Cost', format='£,.2f')
-        ]
-    ).properties(
-        height=400
-    )
-    st.altair_chart(chart, use_container_width=True)
-else:
-    st.warning("No data available to display the chart.")
-
 
 # --- Data Table with Color Formatting ---
 st.subheader("Comparison Tariff Details")
