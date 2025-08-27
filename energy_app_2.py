@@ -57,7 +57,7 @@ st.markdown("Enter your tariff details and monthly consumption to compare plans.
 st.markdown("---")
 
 # --- User Inputs and Results on Main Page ---
-col1, col2, col3 = st.columns([1.5, 1.5, 4])
+col1, col2, col3 = st.columns([1.5, 1.5, 5])
 
 with col1:
     # User consumption inputs
