@@ -189,15 +189,28 @@ else:
 st.subheader("Comparison Tariff Details")
 st.markdown("Here are the details of the tariffs used in the comparison. Cheaper rates are highlighted in green.")
 
-# Create a styled DataFrame for display
-styled_df = comparison_df.style.background_gradient(
-    cmap='RdYlGn_r', # Red-Yellow-Green (reversed) so green is low
-    subset=['Day Rate (p/kWh)', 'Night Rate (p/kWh)', 'Standing Charge (p/day)', 'Estimated Yearly Cost (£)']
-).format({
-    'Day Rate (p/kWh)': '{:.2f}p',
-    'Night Rate (p/kWh)': '{:.2f}p',
-    'Standing Charge (p/day)': '{:.2f}p',
-    'Estimated Yearly Cost (£)': '£{:.2f}'
-})
-
-st.dataframe(styled_df, use_container_width=True)
+# Attempt to create a styled DataFrame, but handle the ImportError if matplotlib is missing.
+try:
+    styled_df = comparison_df.style.background_gradient(
+        cmap='RdYlGn_r', # Red-Yellow-Green (reversed) so green is low
+        subset=['Day Rate (p/kWh)', 'Night Rate (p/kWh)', 'Standing Charge (p/day)', 'Estimated Yearly Cost (£)']
+    ).format({
+        'Day Rate (p/kWh)': '{:.2f}p',
+        'Night Rate (p/kWh)': '{:.2f}p',
+        'Standing Charge (p/day)': '{:.2f}p',
+        'Estimated Yearly Cost (£)': '£{:.2f}'
+    })
+    st.dataframe(styled_df, use_container_width=True)
+except ImportError:
+    st.warning("Could not apply color formatting because the `matplotlib` library is not installed. Displaying the raw data table instead.")
+    st.info("To enable color formatting for a deployed app, add `matplotlib` to your `requirements.txt` file.")
+    # Display the unformatted dataframe as a fallback
+    st.dataframe(comparison_df.style.format({
+        'Day Rate (p/kWh)': '{:.2f}p',
+        'Night Rate (p/kWh)': '{:.2f}p',
+        'Standing Charge (p/day)': '{:.2f}p',
+        'Estimated Yearly Cost (£)': '£{:.2f}'
+    }), use_container_width=True)
+except Exception as e:
+    st.error(f"An unexpected error occurred while styling the table: {e}")
+    st.dataframe(comparison_df, use_container_width=True) # Display raw data on other errors
