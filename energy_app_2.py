@@ -57,7 +57,7 @@ st.markdown("Enter your tariff details and monthly consumption to compare plans.
 st.markdown("---")
 
 # --- User Inputs and Results on Main Page ---
-col1, col2, col3, col4 = st.columns([1.5, 1.5, 1, 2.5])
+col1, col2, col3 = st.columns([1.5, 1.5, 3])
 
 with col1:
     # User consumption inputs
@@ -118,10 +118,21 @@ current_tariff_cost_yearly = calculate_yearly_cost(
     day_consumption,
     night_consumption,
     current_day_rate,
-    current_night_rate, # Bug fix: was passing standing charge twice
+    current_night_rate,
     current_standing_charge
 )
 current_tariff_cost_monthly = current_tariff_cost_yearly / 12
+
+# Create a DataFrame for the user's current tariff to add to the main table
+your_tariff_df = pd.DataFrame([{
+    'Supplier': 'Your Current Tariff',
+    'Tariff Type': 'Custom',
+    'Day Rate (p/kWh)': current_day_rate,
+    'Night Rate (p/kWh)': current_night_rate,
+    'Standing Charge (p/day)': current_standing_charge,
+    'Estimated Yearly Cost (£)': current_tariff_cost_yearly,
+    'Estimated Monthly Cost (£)': current_tariff_cost_monthly
+}])
 
 # Calculate costs for all comparison tariffs
 comparison_df['Estimated Yearly Cost (£)'] = comparison_df.apply(
@@ -136,22 +147,19 @@ comparison_df['Estimated Yearly Cost (£)'] = comparison_df.apply(
 )
 comparison_df['Estimated Monthly Cost (£)'] = comparison_df['Estimated Yearly Cost (£)'] / 12
 
-# --- Display Results ---
-with col3:
-    st.subheader("Results")
-    st.metric(label="Your Est. Yearly Cost", value=f"£{current_tariff_cost_yearly:,.2f}")
-    st.metric(label="Your Est. Monthly Cost", value=f"£{current_tariff_cost_monthly:,.2f}")
+# Add the user's tariff to the top of the comparison DataFrame
+final_comparison_df = pd.concat([your_tariff_df, comparison_df], ignore_index=True)
 
 
 # --- Data Table with Color Formatting ---
-with col4:
+with col3:
     st.subheader("Comparison Details")
     
     # Attempt to create a styled DataFrame, but handle the ImportError if matplotlib is missing.
     try:
         # Reorder columns for better display
         display_cols = ['Supplier', 'Tariff Type', 'Day Rate (p/kWh)', 'Night Rate (p/kWh)', 'Standing Charge (p/day)', 'Estimated Monthly Cost (£)', 'Estimated Yearly Cost (£)']
-        styled_df = comparison_df[display_cols].style.background_gradient(
+        styled_df = final_comparison_df[display_cols].style.background_gradient(
             cmap='RdYlGn_r', # Red-Yellow-Green (reversed) so green is low
             subset=['Day Rate (p/kWh)', 'Night Rate (p/kWh)', 'Standing Charge (p/day)', 'Estimated Monthly Cost (£)', 'Estimated Yearly Cost (£)']
         ).format({
@@ -166,7 +174,7 @@ with col4:
         st.warning("`matplotlib` not installed. Cannot apply color formatting.")
         st.info("To enable colors, add `matplotlib` to your `requirements.txt` file.")
         # Display the unformatted dataframe as a fallback
-        st.dataframe(comparison_df.style.format({
+        st.dataframe(final_comparison_df.style.format({
             'Day Rate (p/kWh)': '{:.2f}p',
             'Night Rate (p/kWh)': '{:.2f}p',
             'Standing Charge (p/day)': '{:.2f}p',
@@ -175,4 +183,4 @@ with col4:
         }), use_container_width=True)
     except Exception as e:
         st.error(f"An unexpected error occurred while styling the table: {e}")
-        st.dataframe(comparison_df, use_container_width=True) # Display raw data on other errors
+        st.dataframe(final_comparison_df, use_container_width=True) # Display raw data on other errors
