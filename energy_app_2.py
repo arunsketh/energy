@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import altair as alt
 
 def calculate_yearly_cost(day_units_month, night_units_month, day_rate_p, night_rate_p, standing_charge_p):
     """
@@ -61,22 +60,20 @@ st.markdown("---")
 st.header("Your Details & Custom Tariffs")
 st.markdown("👇 Enter your consumption and tariff details below.")
 
-col1, col2, col3 = st.columns(3)
+col1, col2 = st.columns(2)
 
 with col1:
     # User consumption inputs
     st.subheader("Monthly Consumption")
     day_consumption = st.number_input("Day Units (kWh)", min_value=0, value=392, step=10)
     night_consumption = st.number_input("Night Units (kWh)", min_value=0, value=49, step=10)
-
-with col2:
-    # User's current tariff inputs
+    
     st.subheader("Your Current Tariff")
     current_day_rate = st.number_input("Day Rate (p)", min_value=0.0, value=22.21, step=0.1, format="%.2f")
     current_night_rate = st.number_input("Night Rate (p)", min_value=0.0, value=15.80, step=0.1, format="%.2f")
     current_standing_charge = st.number_input("Standing (p/day)", min_value=0.0, value=57.74, step=0.1, format="%.2f")
 
-with col3:
+with col2:
     # Section to Add New Tariffs
     st.subheader("Add Custom Tariff")
     new_supplier = st.text_input("Supplier Name")
