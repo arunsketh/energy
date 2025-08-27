@@ -55,37 +55,38 @@ if 'custom_tariffs' not in st.session_state:
 st.title("💡 Electricity Tariff Comparison Tool")
 st.markdown("Enter your current tariff details and monthly consumption to see how it compares to other plans.")
 
-# --- Data for Comparison Tariffs ---
-# This data is based on the spreadsheet provided in the prompt.
-data = {
-    'Supplier': ['OVO', 'Fuse 1', 'Fuse 2', 'Fuse 3', 'OVO Simpler', 'Octopus', 'Fuse 4'],
-    'Day Rate (p/kWh)': [22.21, 25.24, 24.65, 24.91, 27.4, 31.05, 21.9],
-    'Night Rate (p/kWh)': [15.8, 17.64, 24.65, 17.59, 19.48, 13.79, 21.9],
-    'Standing Charge (p/day)': [57.74, 42.4, 47.94, 40.3, 50.5, 49.54, 47.04]
-}
-tariffs_df = pd.DataFrame(data)
+st.markdown("---")
 
-# --- Sidebar for User Inputs ---
-st.sidebar.header("Your Details")
-st.sidebar.markdown("👇 Enter your details below.")
+# --- User Inputs on Main Page ---
+st.header("Your Details")
+st.markdown("👇 Enter your details below to see the comparison.")
 
-# User consumption inputs
-st.sidebar.subheader("Monthly Consumption (kWh)")
-day_consumption = st.sidebar.number_input("Day Units (kWh)", min_value=0, value=392, step=10)
-night_consumption = st.sidebar.number_input("Night Units (kWh)", min_value=0, value=49, step=10)
+col1, col2 = st.columns(2)
 
-# User's current tariff inputs
-st.sidebar.subheader("Your Current Tariff")
-current_day_rate = st.sidebar.number_input("Day Rate (p/kWh)", min_value=0.0, value=22.21, step=0.1, format="%.2f")
-current_night_rate = st.sidebar.number_input("Night Rate (p/kWh)", min_value=0.0, value=15.80, step=0.1, format="%.2f")
-current_standing_charge = st.sidebar.number_input("Standing Charge (p/day)", min_value=0.0, value=57.74, step=0.1, format="%.2f")
+with col1:
+    # User consumption inputs
+    st.subheader("Monthly Consumption (kWh)")
+    day_consumption = st.number_input("Day Units (kWh)", min_value=0, value=392, step=10)
+    night_consumption = st.number_input("Night Units (kWh)", min_value=0, value=49, step=10)
+
+with col2:
+    # User's current tariff inputs
+    st.subheader("Your Current Tariff")
+    current_day_rate = st.number_input("Day Rate (p/kWh)", min_value=0.0, value=22.21, step=0.1, format="%.2f")
+    current_night_rate = st.number_input("Night Rate (p/kWh)", min_value=0.0, value=15.80, step=0.1, format="%.2f")
+    current_standing_charge = st.number_input("Standing Charge (p/day)", min_value=0.0, value=57.74, step=0.1, format="%.2f")
 
 # --- Section to Add New Tariffs ---
-with st.sidebar.expander("➕ Add a Custom Tariff"):
-    new_supplier = st.text_input("Supplier Name")
-    new_day_rate = st.number_input("Day Rate (p/kWh)", min_value=0.0, step=0.1, format="%.2f", key="new_day")
-    new_night_rate = st.number_input("Night Rate (p/kWh)", min_value=0.0, step=0.1, format="%.2f", key="new_night")
-    new_standing_charge = st.number_input("Standing Charge (p/day)", min_value=0.0, step=0.1, format="%.2f", key="new_standing")
+with st.expander("➕ Add a Custom Tariff for Comparison"):
+    form_col1, form_col2, form_col3, form_col4 = st.columns([2,1,1,1])
+    with form_col1:
+        new_supplier = st.text_input("Supplier Name")
+    with form_col2:
+        new_day_rate = st.number_input("Day Rate (p/kWh)", min_value=0.0, step=0.1, format="%.2f", key="new_day")
+    with form_col3:
+        new_night_rate = st.number_input("Night Rate (p/kWh)", min_value=0.0, step=0.1, format="%.2f", key="new_night")
+    with form_col4:
+        new_standing_charge = st.number_input("Standing Charge (p/day)", min_value=0.0, step=0.1, format="%.2f", key="new_standing")
     
     if st.button("Add Tariff to Comparison"):
         if new_supplier: # Basic validation to ensure a name is entered
@@ -99,7 +100,17 @@ with st.sidebar.expander("➕ Add a Custom Tariff"):
         else:
             st.warning("Please enter a supplier name.")
 
-# --- Main Panel for Results ---
+
+# --- Data for Comparison Tariffs ---
+# This data is based on the spreadsheet provided in the prompt.
+data = {
+    'Supplier': ['OVO', 'Fuse 1', 'Fuse 2', 'Fuse 3', 'OVO Simpler', 'Octopus', 'Fuse 4'],
+    'Day Rate (p/kWh)': [22.21, 25.24, 24.65, 24.91, 27.4, 31.05, 21.9],
+    'Night Rate (p/kWh)': [15.8, 17.64, 24.65, 17.59, 19.48, 13.79, 21.9],
+    'Standing Charge (p/day)': [57.74, 42.4, 47.94, 40.3, 50.5, 49.54, 47.04]
+}
+tariffs_df = pd.DataFrame(data)
+
 
 # --- Calculations ---
 # Combine default tariffs with any custom tariffs added by the user
@@ -142,12 +153,12 @@ all_tariffs_for_chart = pd.concat([current_tariff_data, comparison_df[['Supplier
 
 
 # --- Display Results ---
+st.markdown("---")
 st.header("Results")
 
 # Display the calculated cost for the user's current tariff
 st.metric(label="Your Estimated Yearly Cost", value=f"£{current_tariff_cost:,.2f}")
 
-st.markdown("---")
 
 # --- Comparison Chart ---
 st.subheader("Yearly Cost Comparison")
@@ -190,4 +201,3 @@ styled_df = comparison_df.style.background_gradient(
 })
 
 st.dataframe(styled_df, use_container_width=True)
-
