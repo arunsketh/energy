@@ -51,24 +51,21 @@ if 'custom_tariffs' not in st.session_state:
 
 
 # --- App Title ---
-st.title("💡 Electricity Tariff Comparison Tool")
-st.markdown("Enter your current tariff details and monthly consumption to see how it compares to other plans.")
+st.header("💡 Electricity Tariff Comparison Tool")
+st.markdown("Enter your tariff details and monthly consumption to compare plans.")
 
 st.markdown("---")
 
 # --- User Inputs on Main Page ---
-st.header("Your Details & Custom Tariffs")
-st.markdown("👇 Enter your consumption and tariff details below.")
-
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 
 with col1:
     # User consumption inputs
-    st.subheader("Monthly Consumption")
-    day_consumption = st.number_input("Day Units (kWh)", min_value=0, value=392, step=10)
-    night_consumption = st.number_input("Night Units (kWh)", min_value=0, value=49, step=10)
+    st.subheader("Your Details")
+    day_consumption = st.number_input("Monthly Day Units (kWh)", min_value=0, value=392, step=10)
+    night_consumption = st.number_input("Monthly Night Units (kWh)", min_value=0, value=49, step=10)
     
-    st.subheader("Your Current Tariff")
+    st.markdown("###### Your Current Tariff")
     current_day_rate = st.number_input("Day Rate (p)", min_value=0.0, value=22.21, step=0.1, format="%.2f")
     current_night_rate = st.number_input("Night Rate (p)", min_value=0.0, value=15.80, step=0.1, format="%.2f")
     current_standing_charge = st.number_input("Standing (p/day)", min_value=0.0, value=57.74, step=0.1, format="%.2f")
@@ -136,13 +133,14 @@ comparison_df['Estimated Yearly Cost (£)'] = comparison_df.apply(
 )
 
 # --- Display Results ---
-st.markdown("---")
-st.header("Results")
+with col3:
+    st.subheader("Results")
+    # Display the calculated cost for the user's current tariff
+    st.metric(label="Your Estimated Yearly Cost", value=f"£{current_tariff_cost:,.2f}")
 
-# Display the calculated cost for the user's current tariff
-st.metric(label="Your Estimated Yearly Cost", value=f"£{current_tariff_cost:,.2f}")
 
 # --- Data Table with Color Formatting ---
+st.markdown("---")
 st.subheader("Comparison Tariff Details")
 st.markdown("Here are the details of the tariffs used in the comparison. Cheaper rates are highlighted in green.")
 
